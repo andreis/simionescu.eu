@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
+  <title>Andrei Simionescu | Coder & Entrepreneur</title>
+  <meta name="description" content="Personal site of Andrei Simionescu: coder, interviewer, entrepreneur, manager.">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #09090b;
+      --terminal-bg: #0c0c0e;
+      --header-bg: #1c1c1f;
+      --text: #e4e4e7;
+      --text-bright: #fafafa;
+      --text-muted: #71717a;
+      --prompt-user: #34d399;
+      --prompt-dir: #60a5fa;
+      --accent: #818cf8;
+      --border: #27272a;
+      --green: #10b981;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .terminal-window {
+      width: 100%;
+      max-width: 780px;
+      height: 100%;
+      max-height: calc(100vh - 4rem);
+      background-color: var(--terminal-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-header {
+      background-color: var(--header-bg);
+      height: 36px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .control-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-close { background-color: #ef4444; }
+    .dot-minimize { background-color: #f59e0b; }
+    .dot-maximize { background-color: #10b981; }
+
+    .window-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .terminal-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+      flex-grow: 1;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) var(--terminal-bg);
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .terminal-body::-webkit-scrollbar-track {
+      background: var(--terminal-bg);
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+      border: 2px solid var(--terminal-bg);
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    .banner-box {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      position: sticky;
+      top: -1.5rem;
+      z-index: 10;
+      background-color: var(--terminal-bg);
+      padding: 1.5rem;
+      margin-bottom: 0.5rem;
+      transition: padding 0.2s ease, margin 0.2s ease, border-color 0.2s ease, border-radius 0.2s ease, height 0.2s ease;
+    }
+
+    .banner-box.collapsed {
+      padding: 0.4rem 1rem;
+      margin-bottom: 1.25rem;
+      border-color: var(--border);
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 34px;
+    }
+
+    .banner-box.collapsed .banner-grid {
+      display: none;
+    }
+
+    .banner-box.collapsed .banner-title {
+      position: static;
+      padding: 0;
+      font-size: 0.8rem;
+    }
+
+    .scroll-top-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .scroll-top-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .banner-box.collapsed .scroll-top-btn {
+      display: inline-flex;
+    }
+
+    .banner-title {
+      position: absolute;
+      top: -10px;
+      left: 1.5rem;
+      background-color: var(--terminal-bg);
+      padding: 0 0.5rem;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      user-select: none;
+    }
+
+    .banner-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+    }
+
+    .banner-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .banner-left h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+
+    .mascot-art {
+      color: var(--accent);
+      font-size: 1.1rem;
+      line-height: 1.25;
+      white-space: pre;
+      user-select: none;
+      font-family: var(--font-mono);
+    }
+
+    .org-details {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .banner-right {
+      border-left: 1px solid var(--border);
+      padding-left: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .right-section h3 {
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .right-section p {
+      color: var(--text-muted);
+      font-size: 0.825rem;
+      margin-bottom: 0;
+    }
+
+    .highlight {
+      color: var(--accent);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.15s ease, opacity 0.15s ease;
+      cursor: pointer;
+    }
+
+    a:visited, a:focus {
+      color: var(--accent);
+      text-decoration: none;
+      outline: none;
+    }
+
+    a:not(.cmd-link)::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      transform: scaleX(0);
+      height: 1px;
+      bottom: -1px;
+      left: 0;
+      background-color: var(--accent);
+      transform-origin: bottom right;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    a:not(.cmd-link):hover::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
+    }
+
+    a:hover {
+      color: var(--accent);
+      opacity: 0.8;
+    }
+
+    a:active {
+      opacity: 0.5;
+    }
+
+    .system-status {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding-left: 2px;
+    }
+
+    .status-line {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+
+
+    .status-line-pgp {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .pgp-val {
+      color: var(--text-bright);
+    }
+
+    .fingerprint-copy {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      color: var(--text-muted);
+      transition: color 0.15s;
+      margin-left: 4px;
+    }
+
+    .fingerprint-copy:hover {
+      color: var(--accent);
+    }
+
+    .fp-copy-svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      vertical-align: middle;
+    }
+
+    .fp-copied-text {
+      font-size: 11px;
+      margin-left: 4px;
+      display: none;
+      color: var(--green);
+    }
+
+    .console-history {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .console-history:empty {
+      display: none;
+    }
+
+    .console-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .history-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .prompt-row {
+      display: flex;
+      align-items: center;
+      height: 21px;
+      line-height: 21px;
+      user-select: none;
+    }
+
+    .prompt-label {
+      color: var(--prompt-user);
+      font-weight: bold;
+    }
+
+    .prompt-dir {
+      color: var(--prompt-dir);
+    }
+
+    .prompt-char {
+      color: var(--text);
+      margin-right: 0.5rem;
+    }
+
+    .history-cmd {
+      color: var(--text-bright);
+      margin-left: 0.25rem;
+    }
+
+    .output-row {
+      padding-left: 1rem;
+      color: #d4d4d8;
+      white-space: pre-wrap;
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.5rem;
+      max-width: 400px;
+    }
+
+    .file-item {
+      color: #60a5fa;
+      font-weight: bold;
+    }
+
+    .ledger-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .ledger-list li {
+      position: relative;
+      padding-left: 1.25rem;
+    }
+
+    .ledger-list li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .ledger-list strong {
+      color: var(--text);
+    }
+
+    .gpg-output {
+      background-color: #000;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-size: 0.725rem;
+      margin-top: 0.25rem;
+      position: relative;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .gpg-actions {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .gpg-block {
+      white-space: pre;
+      overflow-x: auto;
+      color: #d4d4d8;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      height: 21px;
+      line-height: 21px;
+      cursor: text;
+    }
+
+    .input-container {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-grow: 1;
+      height: 21px;
+      margin-left: 0.25rem;
+    }
+
+    #terminal-input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: transparent;
+      caret-color: transparent;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      padding: 0;
+      margin: 0;
+      line-height: 21px;
+      z-index: 2;
+    }
+
+    #mirrored-container {
+      display: inline-flex;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      z-index: 1;
+      pointer-events: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .custom-cursor {
+      display: inline-block;
+      background-color: var(--text-bright);
+      width: 2px;
+      height: 14px;
+      vertical-align: middle;
+      margin: 0 1px;
+    }
+
+    .custom-cursor.blinking {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      from, to {
+        background-color: transparent;
+      }
+      50% {
+        background-color: var(--text-bright);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 0.5rem;
+      }
+      .terminal-window {
+        max-height: calc(100vh - 1rem);
+      }
+      .terminal-body {
+        padding: 1rem;
+      }
+      .banner-box {
+        top: -1rem;
+      }
+      .banner-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      .banner-right {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="window-controls">
+        <div class="control-dot dot-close"></div>
+        <div class="control-dot dot-minimize"></div>
+        <div class="control-dot dot-maximize"></div>
+      </div>
+      <div class="window-title">bash - andrei@simionescu.eu: ~</div>
+      <div></div>
+    </div>
+
+    <div class="terminal-body">
+      <div class="banner-box">
+        <span class="banner-title">Andrei Simionescu v26.6.15</span>
+        <button class="scroll-top-btn" title="Scroll to Top">[↑ Top]</button>
+        <div class="banner-grid">
+          <div class="banner-left">
+            <h2>Welcome back!</h2>
+            <div class="mascot-art" id="mascot-art"></div>
+            <div class="org-details">
+              Director · SMNSCU Ltd
+              <br>
+              Cheadle, UK / Remote
+            </div>
+          </div>
+
+          <div class="banner-right">
+            <div class="right-section">
+              <h3>Tips for getting started</h3>
+              <p>Type <a href="#" class="cmd-link">help</a> to list available commands.</p>
+              <p>Type <a href="#" class="cmd-link">cat bio.txt</a> to read the profile.</p>
+            </div>
+            <div class="right-section">
+              <h3>What's new</h3>
+              <p>Building <a href="https://coderba.se" target="_blank" rel="noopener noreferrer">Coderbase</a> – structured interview sandboxing.</p>
+              <p>Consulting availability: Selective advisory.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="system-status">
+        <div class="status-line status-line-pgp">
+          <span>PGP Key:</span>
+          <span class="pgp-val">DF39 2562 7D27 4D60 23C4 C405 CCC8 DFC7 26CD DE9F</span>
+          <span class="fingerprint-copy" title="Copy Fingerprint">
+            <svg viewBox="0 0 24 24" class="fp-copy-svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            <span class="fp-copied-text">Copied</span>
+          </span>
+        </div>
+        <div class="status-line">
+          Operator: <a href="mailto:andrei@simionescu.eu">andrei@simionescu.eu</a> · <a href="https://github.com/andreis" target="_blank" rel="noopener noreferrer">github.com/andreis</a> · <a href="https://linkedin.com/in/andrei-simionescu" target="_blank" rel="noopener noreferrer">in/andrei-simionescu</a>
+        </div>
+      </div>
+
+      <div class="console-area">
+        <div class="console-history" id="cli-history"></div>
+
+        <div class="input-row">
+          <span class="prompt-label">andrei@simionescu.eu</span>:<span class="prompt-dir">~</span><span class="prompt-char">$</span>
+          <div class="input-container">
+            <div id="mirrored-container"><span id="text-before"></span><span class="custom-cursor"></span><span id="text-after"></span></div>
+            <input type="text" id="terminal-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" autofocus>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentDir = '~/src/andreis';
+    
+    const files = {
+      'bio.txt': `Andrei Simionescu is a coder, interviewer, entrepreneur, and manager.
+
+His professional career started with co-founding Lavaboom, one of the early zero-knowledge encrypted email providers, where he served as CTO. Since then, he has spent his time doing a mix of engineering leadership, systems design, and independent consulting.
+
+Some of his key chapters include leading the claims engineering department at Simplesurance to stabilize their delivery pipeline and resolve operational backlogs, and advising Coinbase on growth foundations, specifically working on distributed workflow orchestration using Temporal.
+
+Today, he runs his consulting vehicle SMNSCU Ltd and is building Coderbase, a platform for sandboxing and running structured developer interviews inside microVMs.
+
+His focuses for building software are highly pragmatic: clear system boundaries, operational simplicity, and predictable state.`,
+      'contact.txt': 'Email:    andrei@simionescu.eu\nGitHub:   https://github.com/andreis\nLinkedIn: https://linkedin.com/in/andrei-simionescu\nCompany:  https://coderba.se',
+      'ledger.txt': 'Independent systems engineering and strategy projects under my UK consulting entity, SMNSCU Ltd (incorporated in 2019):\n\n- Coinbase: Systems advisor in growth foundations. Worked on Temporal orchestration workflows and data attribute flows.\n- Simplesurance: Software Engineering Team Lead. Stabilized claims delivery, managed team processes, and resolved CS ticket backlogs.\n- Lavaboom (CTO & Co-founder): One of the first zero-knowledge encrypted email service, reaching 30k MAU.',
+      'gpg.key': `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+dBuYYrQT
+=KQsR
+-----END PGP PUBLIC KEY BLOCK-----`
+    };
+
+    const commandHistory = [];
+    let historyIndex = -1;
+
+    const terminalInput = document.getElementById('terminal-input');
+    const cliHistory = document.getElementById('cli-history');
+
+    function scrollToTop(e) {
+      if (e) e.stopPropagation();
+      const terminalBody = document.querySelector('.terminal-body');
+      if (terminalBody) {
+        terminalBody.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    function focusCli(e) {
+      if (window.getSelection().toString()) return;
+      if (e && e.target) {
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.fingerprint-copy') || e.target.closest('.copy-btn')) {
+          return;
+        }
+      }
+      terminalInput.focus({ preventScroll: true });
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter') {
+        const line = terminalInput.value.trim();
+        executeCommand(line);
+        terminalInput.value = '';
+        updateCursor();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0) {
+          if (historyIndex === -1) {
+            historyIndex = commandHistory.length - 1;
+          } else if (historyIndex > 0) {
+            historyIndex--;
+          }
+          terminalInput.value = commandHistory[historyIndex];
+          updateCursor();
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex !== -1) {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            terminalInput.value = commandHistory[historyIndex];
+          } else {
+            historyIndex = -1;
+            terminalInput.value = '';
+          }
+          updateCursor();
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        handleAutocomplete();
+        updateCursor();
+      }
+    }
+
+    function handleAutocomplete() {
+      const currentVal = terminalInput.value.trim();
+      const parts = currentVal.split(/\s+/);
+      const lastWord = parts[parts.length - 1];
+
+      if (parts[0] === 'cat') {
+        const matchingFiles = Object.keys(files).filter(f => f.startsWith(lastWord));
+        if (matchingFiles.length === 1) {
+          parts[parts.length - 1] = matchingFiles[0];
+          terminalInput.value = parts.join(' ');
+        }
+      } else {
+        const allCommands = ['help', 'whoami', 'ls', 'pwd', 'clear', 'cat', 'gpg', 'ping', 'sudo', 'exit', 'clippy', 'factorio'];
+        const matchingCmd = allCommands.filter(c => c.startsWith(currentVal));
+        if (matchingCmd.length === 1) {
+          terminalInput.value = matchingCmd[0] + ' ';
+        }
+      }
+    }
+
+    function executeCommand(inputLine) {
+      if (!inputLine) {
+        appendHistoryRow('', '');
+        return;
+      }
+
+      commandHistory.push(inputLine);
+      historyIndex = -1;
+
+      const tokens = inputLine.split(/\s+/);
+      const cmd = tokens[0].toLowerCase();
+      const args = tokens.slice(1);
+
+      let output = '';
+
+      switch (cmd) {
+        case 'help':
+        case '?':
+        case '/help':
+          output = `Available commands:
+  whoami      Identify current operator
+  ls          List files in directory
+  cat [file]  Print file contents
+  gpg         Display PGP public key block
+  pwd         Print working directory
+  ping        Ping remote target
+  clear       Clear terminal output
+  sudo [cmd]  Execute command as superuser
+  exit        Terminate shell connection`;
+          break;
+
+        case 'whoami':
+          output = 'Andrei Simionescu – coder, interviewer, entrepreneur, manager.';
+          break;
+
+        case 'ls':
+          output = '<div class="file-grid"><span class="file-item">bio.txt</span><span class="file-item">contact.txt</span><span class="file-item">ledger.txt</span><span class="file-item">gpg.key</span></div>';
+          break;
+
+        case 'pwd':
+          output = currentDir;
+          break;
+
+        case 'clear':
+          cliHistory.innerHTML = '';
+          return;
+
+        case 'cat':
+          if (!args[0]) {
+            output = 'Usage: cat [file_name]';
+          } else {
+            const fileName = args[0].toLowerCase();
+            if (files[fileName]) {
+              output = files[fileName];
+              if (fileName === 'gpg.key') {
+                output = wrapGpgKeyBlock(output);
+              }
+            } else {
+              output = `cat: ${args[0]}: No such file or directory`;
+            }
+          }
+          break;
+
+        case 'gpg':
+          output = wrapGpgKeyBlock(files['gpg.key']);
+          break;
+
+        case 'ping':
+          output = `PING athena.coderba.se (159.69.110.144): 56 data bytes
+64 bytes from 159.69.110.144: icmp_seq=0 ttl=64 time=0.115 ms
+64 bytes from 159.69.110.144: icmp_seq=1 ttl=64 time=0.108 ms
+
+--- athena.coderba.se ping statistics ---
+2 packets transmitted, 2 packets received, 0.0% packet loss
+rtt min/avg/max/mdev = 0.108/0.111/0.115/0.003 ms`;
+          break;
+
+        case 'sudo':
+          if (!args[0]) {
+            output = 'Usage: sudo [command]';
+          } else {
+            const subcmd = args.join(' ').toLowerCase();
+            if (subcmd.includes('reboot') || subcmd.includes('shutdown')) {
+              output = 'Error: Permission denied. Andrei does not trust you with the power button.';
+            } else if (subcmd.includes('rm -rf')) {
+              output = 'Nice try. Files are cached to smithereens by Cloudflare and backed up on Athena.';
+            } else {
+              output = 'andrei is not in the sudoers file. This incident will be reported.';
+            }
+          }
+          break;
+
+        case 'exit':
+          output = 'Closing session. Type help to reconnect.';
+          break;
+
+        case 'clippy':
+          output = ` ____________________________________
+/ It looks like you're trying to      \\
+| evaluate an elite systems operator.|
+\\ Can I write a cover letter?        /
+ ------------------------------------
+        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||`;
+          break;
+
+        case 'factorio':
+          output = 'The factory must grow.';
+          break;
+
+        default:
+          output = `Command not found: ${cmd}. Type 'help' to see list of commands.`;
+      }
+
+      appendHistoryRow(inputLine, output);
+    }
+
+    function copyToClipboard(text, callback) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          if (callback) callback(true);
+        }).catch(err => {
+          console.warn('navigator.clipboard failed, trying fallback:', err);
+          fallbackCopy(text, callback);
+        });
+      } else {
+        fallbackCopy(text, callback);
+      }
+    }
+
+    function fallbackCopy(text, callback) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (callback) callback(successful);
+      } catch (err) {
+        console.error('Fallback copy failed:', err);
+        if (callback) callback(false);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function wrapGpgKeyBlock(rawKey) {
+      return `<div class="gpg-output">
+  <div class="gpg-actions">
+    <span>Andrei Simionescu &lt;ansimionescu@gmail.com&gt;</span>
+    <button class="copy-btn">Copy</button>
+  </div>
+  <div class="gpg-block">${escapeHtml(rawKey)}</div>
+</div>`;
+    }
+
+    function copyGpgContent(btn) {
+      const gpgOutput = btn.closest('.gpg-output');
+      const text = gpgOutput.querySelector('.gpg-block').innerText;
+      copyToClipboard(text, (success) => {
+        if (success) {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          
+          if (btn.timeoutId) {
+            clearTimeout(btn.timeoutId);
+          }
+          
+          btn.timeoutId = setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+            btn.timeoutId = null;
+          }, 2000);
+        }
+      });
+    }
+
+    function copyFingerprint() {
+      const fp = "DF39 2562 7D27 4D60 23C4 C405 CCC8 DFC7 26CD DE9F";
+      const el = document.querySelector('.fingerprint-copy');
+      copyToClipboard(fp, (success) => {
+        if (success) {
+          const textNode = el.querySelector('.fp-copied-text');
+          const svgNode = el.querySelector('.fp-copy-svg');
+          
+          textNode.textContent = 'Copied!';
+          textNode.style.display = 'inline';
+          svgNode.style.color = 'var(--green)';
+          
+          if (el.timeoutId) {
+            clearTimeout(el.timeoutId);
+          }
+          
+          el.timeoutId = setTimeout(() => {
+            textNode.style.display = 'none';
+            svgNode.style.color = 'inherit';
+            el.timeoutId = null;
+          }, 2000);
+        }
+      });
+    }
+
+    const mascots = [
+      "\n\n  (\\_/)\n  (='.'=)\n  (\")_(\")",
+      "\n\n  /\\_/\\\n ( o.o )\n  > ^ <",
+      "\n\n (`)_(`)\n ( o.o )\n (\")_(\")",
+      "\n  ,_,\n (O,O)\n (   )\n  \"-\"",
+      "/ \\__/\\\n(  o.o  )\n )  -  (\n((  .  ))\n (\")_(\")"
+    ];
+
+    function loadRandomMascot() {
+      const artEl = document.getElementById('mascot-art');
+      if (artEl) {
+        const randomIndex = Math.floor(Math.random() * mascots.length);
+        artEl.textContent = mascots[randomIndex];
+      }
+    }
+
+    function appendHistoryRow(cmd, output) {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      
+      const promptRow = document.createElement('div');
+      promptRow.className = 'prompt-row';
+      promptRow.innerHTML = `<span class="prompt-label">andrei@simionescu.eu</span>:<span class="prompt-dir">~</span><span class="prompt-char">$</span><span class="history-cmd">${escapeHtml(cmd)}</span>`;
+      item.appendChild(promptRow);
+
+      if (output) {
+        const outputRow = document.createElement('div');
+        outputRow.className = 'output-row';
+        outputRow.innerHTML = output.replace(/\n/g, '<br>');
+        item.appendChild(outputRow);
+      }
+
+      cliHistory.appendChild(item);
+      
+      const terminalBody = document.querySelector('.terminal-body');
+      if (terminalBody) {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function updateCursor() {
+      const input = terminalInput;
+      const textBefore = document.getElementById('text-before');
+      const textAfter = document.getElementById('text-after');
+      const cursor = document.querySelector('.custom-cursor');
+      if (!input || !textBefore || !textAfter || !cursor) return;
+      
+      const start = input.selectionStart;
+      const val = input.value;
+      
+      textBefore.textContent = val.substring(0, start);
+      textAfter.textContent = val.substring(start);
+      
+      if (document.activeElement === input) {
+        cursor.classList.add('blinking');
+      } else {
+        cursor.classList.remove('blinking');
+      }
+    }
+
+    document.body.addEventListener('click', focusCli);
+    document.querySelector('.scroll-top-btn').addEventListener('click', scrollToTop);
+    document.querySelector('.fingerprint-copy').addEventListener('click', copyFingerprint);
+    terminalInput.addEventListener('keydown', handleKey);
+
+    document.querySelectorAll('.cmd-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cmd = link.textContent.trim();
+        terminalInput.value = '';
+        executeCommand(cmd);
+        terminalInput.focus({ preventScroll: true });
+        updateCursor();
+      });
+    });
+
+    cliHistory.addEventListener('click', (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (btn) {
+        copyGpgContent(btn);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.activeElement === terminalInput) return;
+      if (document.activeElement && (
+          document.activeElement.tagName === 'INPUT' || 
+          document.activeElement.tagName === 'TEXTAREA' || 
+          document.activeElement.isContentEditable)) {
+        return;
+      }
+      terminalInput.focus({ preventScroll: true });
+    });
+
+    window.addEventListener('focus', () => {
+      terminalInput.focus({ preventScroll: true });
+    });
+
+    terminalInput.addEventListener('input', updateCursor);
+    terminalInput.addEventListener('keydown', () => setTimeout(updateCursor, 0));
+    terminalInput.addEventListener('keyup', updateCursor);
+    terminalInput.addEventListener('click', updateCursor);
+    terminalInput.addEventListener('focus', updateCursor);
+    terminalInput.addEventListener('blur', updateCursor);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      focusCli();
+      loadRandomMascot();
+      updateCursor();
+
+      const tBody = document.querySelector('.terminal-body');
+      const bBox = document.querySelector('.banner-box');
+      if (tBody && bBox) {
+        tBody.addEventListener('scroll', () => {
+          if (tBody.scrollTop > 20) {
+            bBox.classList.add('collapsed');
+          } else {
+            bBox.classList.remove('collapsed');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
