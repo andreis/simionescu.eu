@@ -162,10 +162,12 @@
       padding: 0.15rem 0.4rem;
       border-radius: 3px;
       align-items: center;
+      justify-content: center;
       font-family: var(--font-mono);
       font-size: 0.7rem;
       transition: all 0.15s ease;
       user-select: none;
+      flex-shrink: 0;
     }
 
     .scroll-top-btn:hover {
@@ -174,7 +176,7 @@
     }
 
     .banner-box.collapsed .scroll-top-btn {
-      display: inline-flex;
+      display: flex;
     }
 
     .banner-title {
@@ -597,7 +599,7 @@
     <div class="terminal-body">
       <div class="banner-box">
         <span class="banner-title">Andrei Simionescu v26.6.15</span>
-        <button class="scroll-top-btn" title="Scroll to Top">[↑ Top]</button>
+        <button class="scroll-top-btn" title="Scroll to Top">[^ Top]</button>
         <div class="banner-grid">
           <div class="banner-left">
             <h2>Welcome back!</h2>
